@@ -29,9 +29,17 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'clave-solo-para-desarrollo-cambiar-en
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'   # En producción: DEBUG=False
 
-ALLOWED_HOSTS = [h for h in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h]
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "comanda.wasmer.app",
+    ".wasmer.app",
+]
 
-
+CSRF_TRUSTED_ORIGINS = [
+    "https://comanda.wasmer.app",
+    "https://*.wasmer.app",
+]
 # Application definition
 
 INSTALLED_APPS = [
