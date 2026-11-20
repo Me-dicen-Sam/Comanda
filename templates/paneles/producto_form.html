@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Editar producto · COMANDA{% endblock %}
+{% block content %}
+<div class="max-w-lg mx-auto space-y-4">
+  <a href="{% url 'panel_cafeteria' %}?vista=catalogo" class="text-sm font-semibold text-[#FF441F] hover:underline">‹ Volver al catálogo</a>
+  <form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+    {% csrf_token %}<h1 class="text-2xl font-extrabold">Editar «{{ producto.nombre }}»</h1>
+    {% if producto.foto %}<img src="{{ producto.foto.url }}" alt="Foto actual" class="h-32 w-32 rounded-xl object-cover">{% endif %}
+    {% for f in form %}
+      {% if f.name == 'disponible' %}<label class="flex items-center gap-2 text-sm font-semibold">{{ f }} {{ f.label }}</label>
+      {% else %}<div><label for="{{ f.id_for_label }}" class="block text-sm font-semibold mb-1">{{ f.label }}</label>
+        <div class="[&_input:not([type=file])]:w-full [&_input:not([type=file])]:rounded-lg [&_input:not([type=file])]:border [&_input:not([type=file])]:border-gray-300 [&_input:not([type=file])]:px-3 [&_input:not([type=file])]:py-2 [&_select]:w-full [&_select]:rounded-lg [&_select]:border [&_select]:border-gray-300 [&_select]:px-3 [&_select]:py-2">{{ f }}</div>
+        {% for e in f.errors %}<p class="text-sm text-red-600 font-medium mt-1">{{ e }}</p>{% endfor %}</div>{% endif %}
+    {% endfor %}
+    <button class="w-full bg-[#FF441F] hover:bg-[#e03816] text-white font-bold py-3 rounded-xl">Guardar cambios</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}COMANDA · ¿Dónde estás?{% endblock %}
+
+{% block content %}
+<style>
+  /* ===== Todo el estilo de esta página vive aquí (no depende de Tailwind) ===== */
+  body { overflow-x: clip; }
+  .ub-wrap { max-width: 72rem; margin: 0 auto; }
+  .ub-title { font-size: 1.75rem; font-weight: 800; color: #111827; margin: 0; }
+  .ub-sub { margin: .35rem 0 1.25rem; font-size: .9rem; color: #4b5563; }
+
+  /* Escenario naranja COMANDA a todo el ancho de la pantalla */
+  .showcase {
+    --ah: calc(100cqh - 64px);                         /* alto disponible para la foto del centro */
+    --aw: min(calc(var(--ah) * .62), 72cqw);            /* ancho de la foto del centro */
+    --gap: 18px;
+    container-type: size;
+    position: relative; overflow: hidden;
+    width: 100vw; margin-left: calc(50% - 50vw);
+    height: clamp(520px, 78vh, 700px);
+    background: radial-gradient(ellipse at 50% 0%, #ff6647 0%, #FF441F 62%, #d93211 100%);
+    border-top: 1px solid rgba(255,255,255,.22);
+    border-bottom: 1px solid rgba(255,255,255,.22);
+  }
+  .track { position: absolute; inset: 0; }
+
+  .slide {
+    position: absolute; left: 50%; top: 50%;
+    width: var(--aw); aspect-ratio: 9 / 14;
+    transform: translate(-50%, -50%);
+    border: 1px solid rgba(255,255,255,.25); border-radius: 18px; overflow: hidden;
+    padding: 0; font: inherit; color: #fff; text-align: left; cursor: pointer;
+    background: #252525; box-shadow: 0 12px 34px rgba(0,0,0,.35);
+    opacity: 0; pointer-events: none;
+    transition: transform .55s cubic-bezier(.2,.75,.2,1), width .55s cubic-bezier(.2,.75,.2,1),
+                opacity .55s, filter .55s, box-shadow .3s;
+  }
+  .slide:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+  .slide.active { z-index: 5; opacity: 1; pointer-events: auto; cursor: default; }
+  .slide.chosen { box-shadow: 0 0 0 4px #ffffff, 0 14px 40px rgba(0,0,0,.45); }
+  .slide.prev, .slide.next {
+    width: calc(var(--aw) * .84); z-index: 3; opacity: .88; pointer-events: auto; filter: brightness(.82);
+  }
+  .slide.far-prev, .slide.far-next {
+    width: calc(var(--aw) * .70); z-index: 1; opacity: .6; pointer-events: auto; filter: brightness(.65);
+  }
+  .slide.prev     { transform: translate(calc(-50% - var(--aw) * .92 - var(--gap)), -50%); }
+  .slide.next     { transform: translate(calc(-50% + var(--aw) * .92 + var(--gap)), -50%); }
+  .slide.far-prev { transform: translate(calc(-50% - var(--aw) * 1.69 - var(--gap) * 2), -50%); }
+  .slide.far-next { transform: translate(calc(-50% + var(--aw) * 1.69 + var(--gap) * 2), -50%); }
+
+  /* Foto grande; si no existe el archivo se ve el fondo con el número del bloque */
+  .ph {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: linear-gradient(160deg, #4b5563 0%, #1f2937 55%, #111827 100%);
+  }
+  .ph-num   { font-size: clamp(5rem, 14cqh, 9rem); font-weight: 900; line-height: 1; color: rgba(255,255,255,.18); }
+  .ph-emoji { font-size: 3rem; margin-top: .25rem; opacity: .9; }
+  .photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0; transition: opacity .4s; }
+  .photo.ok { opacity: 1; }
+  .shade { position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(180deg, rgba(0,0,0,.40) 0%, transparent 22%, transparent 50%, rgba(0,0,0,.82) 100%); }
+
+  .info { position: absolute; left: 20px; right: 20px; bottom: 22px; display: block; }
+  .name { display: block; font-size: 1.7rem; font-weight: 800; line-height: 1.1; text-shadow: 0 2px 8px rgba(0,0,0,.5); }
+  .hint { display: block; margin-top: .3rem; font-size: .85rem; color: rgba(255,255,255,.8); }
+  .badge {
+    position: absolute; top: 16px; right: 16px; width: 38px; height: 38px; border-radius: 50%;
+    background: #FF441F; color: #fff; font-weight: 800; font-size: 1.1rem;
+    display: none; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,.4);
+  }
+  .slide.chosen .badge { display: flex; }
+
+  .arrow {
+    position: absolute; z-index: 10; top: 50%; transform: translateY(-50%);
+    width: 58px; height: 58px; border-radius: 50%; border: 1px solid rgba(255,255,255,.35);
+    background: rgba(0,0,0,.22); color: #fff; font-size: 36px; font-weight: 200; line-height: 1;
+    cursor: pointer; display: grid; place-items: center; backdrop-filter: blur(5px);
+  }
+  .arrow:hover { background: rgba(0,0,0,.38); }
+  .arrow:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+  .arrow.left { left: 28px; } .arrow.right { right: 28px; }
+
+  .dots { position: absolute; z-index: 8; bottom: 22px; left: 50%; transform: translateX(-50%); display: flex; gap: 11px; }
+  .dot { width: 10px; height: 10px; border: 0; border-radius: 50%; background: rgba(255,255,255,.45); padding: 0; cursor: pointer; }
+  .dot.active { background: #fff; transform: scale(1.25); }
+  .dot:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+  /* Piso y botón continuar */
+  .ub-piso { margin-top: 1.75rem; text-align: center; }
+  .ub-piso h2 { margin: 0 0 .75rem; font-size: 1.1rem; font-weight: 800; color: #FF441F; }
+  .ub-pisos { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; }
+  .piso-btn {
+    padding: .8rem 1.5rem; border-radius: .85rem; border: 1px solid rgba(255,68,31,.4); background: #fff; color: #FF441F;
+    font: inherit; font-size: .9rem; font-weight: 800; cursor: pointer; transition: background .15s;
+  }
+  .piso-btn:hover { background: rgba(255,68,31,.08); }
+  .piso-btn[aria-pressed="true"] { background: #FF441F; border-color: #FF441F; color: #fff; box-shadow: 0 2px 6px rgba(255,68,31,.35); }
+  .ub-resumen { margin: 1.25rem 0 0; text-align: center; font-weight: 700; color: #374151; min-height: 1.5rem; }
+  .ub-error { margin: .5rem auto 0; max-width: 28rem; text-align: center; color: #b91c1c; font-weight: 700; min-height: 1.25rem; }
+  .ub-go { display: flex; justify-content: center; margin-top: .5rem; }
+  .ub-btn {
+    border: 0; background: #FF441F; color: #fff; font: inherit; font-weight: 800; font-size: .95rem;
+    padding: .95rem 2.5rem; border-radius: .85rem; cursor: pointer; box-shadow: 0 3px 10px rgba(255,68,31,.35);
+  }
+  .ub-btn:hover { background: #e03816; }
+
+  @media (max-width: 1100px) { .arrow.left { left: 12px; } .arrow.right { right: 12px; } }
+  @media (max-width: 700px) {
+    .showcase { height: clamp(500px, 74vh, 640px); }
+    .slide.prev, .slide.next { opacity: .5; }
+    .slide.far-prev, .slide.far-next { opacity: 0; pointer-events: none; }
+    .arrow { width: 44px; height: 44px; font-size: 28px; } .arrow.left { left: 8px; } .arrow.right { right: 8px; }
+    .name { font-size: 1.45rem; } .dots { gap: 8px; bottom: 18px; }
+    .dot { width: 8px; height: 8px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .slide, .photo { transition: none; } }
+</style>
+
+<div class="ub-wrap">
+  <h1 class="ub-title">¿Dónde estás?</h1>
+  <p class="ub-sub">Desliza los bloques (del 1 al 6) y toca el del centro para elegirlo. Luego escoge tu piso para calcular el domicilio.</p>
+</div>
+
+<form method="post" id="form-ubicacion">
+  {% csrf_token %}
+  <input type="hidden" name="bloque" id="id_bloque_input" value="{{ bloque_sel|default:'' }}">
+  <input type="hidden" name="piso" id="id_piso_input" value="{{ piso_sel|default:'' }}">
+
+  <section class="showcase" id="showcase" aria-roledescription="carrusel" aria-label="Elige tu bloque">
+    <div class="track" id="track">
+      {% for item in bloques_data %}
+        {% with b=item.obj num=item.cod|add:"0" %}
+          {% if num >= 1 and num <= 6 %}
+            {% with p_jpg="img/bloques/b"|add:item.cod|add:".jpg" p_jpeg="img/bloques/b"|add:item.cod|add:".jpeg" p_png="img/bloques/b"|add:item.cod|add:".png" p_JPG="img/bloques/b"|add:item.cod|add:".JPG" %}
+            <button type="button" class="slide" data-bloque-id="{{ b.pk }}" aria-label="{{ b.nombre }}">
+              <span class="ph" aria-hidden="true"><span class="ph-num">{{ item.cod }}</span><span class="ph-emoji">🏫</span></span>
+              {% if b.foto %}
+                <img class="photo" src="{{ b.foto.url }}" alt="Foto del {{ b.nombre }}">
+              {% else %}
+                <img class="photo" src="{% static p_jpg %}"
+                     data-fallbacks="{% static p_jpeg %}|{% static p_png %}|{% static p_JPG %}" alt="Foto del {{ b.nombre }}">
+              {% endif %}
+              <span class="shade" aria-hidden="true"></span>
+              <span class="badge" aria-hidden="true">✓</span>
+              <span class="info"><span class="name">{{ b.nombre }}</span><span class="hint">Toca para elegir</span></span>
+            </button>
+            {% endwith %}
+          {% endif %}
+        {% endwith %}
+      {% endfor %}
+    </div>
+    <button type="button" class="arrow left" id="btn-prev-bloque" aria-label="Bloque anterior">‹</button>
+    <button type="button" class="arrow right" id="btn-next-bloque" aria-label="Bloque siguiente">›</button>
+    <div class="dots" id="dots" aria-hidden="true"></div>
+  </section>
+
+  <section class="ub-piso" aria-labelledby="t-piso">
+    <h2 id="t-piso">2. Tu piso</h2>
+    <div class="ub-pisos" role="group" aria-labelledby="t-piso">
+      {% for p in pisos %}
+        <button type="button" class="piso-btn" data-piso-val="{{ p }}" aria-pressed="{% if piso_sel == p %}true{% else %}false{% endif %}">Piso {{ p }}</button>
+      {% endfor %}
+    </div>
+  </section>
+
+  <p class="ub-resumen" id="resumen" aria-live="polite"></p>
+  <p class="ub-error" id="ub-error" role="alert"></p>
+  <div class="ub-go"><button type="submit" class="ub-btn">Continuar</button></div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  var slides = Array.prototype.slice.call(document.querySelectorAll('#track .slide'));
+  var dotsBox = document.getElementById('dots');
+  var bloqueInput = document.getElementById('id_bloque_input');
+  var pisoInput = document.getElementById('id_piso_input');
+  var resumen = document.getElementById('resumen');
+  var errorBox = document.getElementById('ub-error');
+  var n = slides.length;
+  if (!n) return;
+
+  slides.forEach(function (s) {
+    var img = s.querySelector('img.photo');
+    if (!img) return;
+    var fb = (img.dataset.fallbacks || '').split('|').filter(Boolean), i = 0;
+    img.addEventListener('load', function () { img.classList.add('ok'); });
+    img.addEventListener('error', function () { if (i < fb.length) { img.src = fb[i++]; } else { img.remove(); } });
+    if (img.complete) { if (img.naturalWidth > 0) { img.classList.add('ok'); } else { img.dispatchEvent(new Event('error')); } }
+  });
+
+  var current = 0, chosen = !!bloqueInput.value;
+  if (bloqueInput.value) {
+    slides.forEach(function (s, i) { if (s.dataset.bloqueId === bloqueInput.value) current = i; });
+  }
+
+  slides.forEach(function (_, i) {
+    var d = document.createElement('button');
+    d.type = 'button'; d.className = 'dot'; d.tabIndex = -1;
+    d.addEventListener('click', function () { go(i); });
+    dotsBox.appendChild(d);
+  });
+
+  function render() {
+    slides.forEach(function (s, i) {
+      var diff = (i - current + n) % n; if (diff > n / 2) diff -= n;
+      s.className = 'slide' + (diff === 0 ? ' active' : diff === -1 ? ' prev' : diff === 1 ? ' next' : diff === -2 ? ' far-prev' : diff === 2 ? ' far-next' : '');
+      var esElegido = chosen && diff === 0;
+      if (esElegido) s.classList.add('chosen');
+      s.setAttribute('aria-current', diff === 0 ? 'true' : 'false');
+      s.setAttribute('aria-pressed', esElegido ? 'true' : 'false');
+      s.tabIndex = (diff === 0 || Math.abs(diff) === 1) ? 0 : -1;
+      s.querySelector('.hint').textContent = esElegido ? '✓ Tu bloque' : (diff === 0 ? 'Toca para elegir' : 'Toca para ver');
+    });
+    Array.prototype.forEach.call(dotsBox.children, function (d, i) { d.classList.toggle('active', i === current); });
+    bloqueInput.value = chosen ? slides[current].dataset.bloqueId : '';
+    var nombre = slides[current].querySelector('.name').textContent;
+    var piso = pisoInput.value;
+    resumen.textContent = chosen ? ('Tu ubicación: ' + nombre + (piso ? ' · Piso ' + piso : '')) : '';
+  }
+  function go(i) { current = (i + n) % n; chosen = true; errorBox.textContent = ''; render(); }
+
+  slides.forEach(function (s, i) {
+    s.addEventListener('click', function () { go(i); });
+  });
+  document.getElementById('btn-prev-bloque').addEventListener('click', function () { go(current - 1); });
+  document.getElementById('btn-next-bloque').addEventListener('click', function () { go(current + 1); });
+  document.addEventListener('keydown', function (e) {
+    var t = e.target.tagName;
+    if (t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT') return;
+    if (e.key === 'ArrowLeft') go(current - 1);
+    if (e.key === 'ArrowRight') go(current + 1);
+  });
+  var x0 = 0, box = document.getElementById('showcase');
+  box.addEventListener('touchstart', function (e) { x0 = e.changedTouches[0].screenX; }, { passive: true });
+  box.addEventListener('touchend', function (e) {
+    var d = e.changedTouches[0].screenX - x0;
+    if (Math.abs(d) > 45) go(d < 0 ? current + 1 : current - 1);
+  }, { passive: true });
+
+  var pisoBtns = Array.prototype.slice.call(document.querySelectorAll('.piso-btn'));
+  pisoBtns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      pisoInput.value = b.dataset.pisoVal; errorBox.textContent = '';
+      pisoBtns.forEach(function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
+      render();
+    });
+  });
+
+  document.getElementById('form-ubicacion').addEventListener('submit', function (e) {
+    if (!bloqueInput.value) { e.preventDefault(); errorBox.textContent = 'Elige tu bloque: toca la foto del centro.'; return; }
+    if (!pisoInput.value) { e.preventDefault(); errorBox.textContent = 'Elige tu piso.'; }
+  });
+
+  render();
+})();
+</script>
+{% endblock %}

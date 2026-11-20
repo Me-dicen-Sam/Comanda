@@ -1,0 +1,9 @@
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+  {% for nombre, valor, nota in metricas %}
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+    <p class="text-xs font-bold uppercase tracking-wide text-gray-500">{{ nombre }}</p>
+    <p class="text-3xl font-extrabold mt-1">{{ valor }}</p>
+    <p class="text-xs text-gray-500 mt-0.5">{{ nota }}</p>
+  </div>
+  {% endfor %}
+</div>

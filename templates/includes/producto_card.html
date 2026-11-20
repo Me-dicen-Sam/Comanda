@@ -1,0 +1,44 @@
+{% load formato static %}
+<article class="h-full w-full bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col justify-between">
+  <div>
+    <div class="relative h-40 w-full bg-gradient-to-br from-orange-50 to-amber-100 flex items-center justify-center">
+      {% if item.p.foto %}
+        {% if item.p.foto.name|slice:":4" == "img/" %}
+          <img src="{% static item.p.foto.name %}" alt="{{ item.p.nombre }}" class="absolute inset-0 w-full h-full object-cover">
+        {% else %}
+          <img src="{{ item.p.foto.url }}" alt="{{ item.p.nombre }}" class="absolute inset-0 w-full h-full object-cover">
+        {% endif %}
+      {% else %}
+        <span class="text-6xl" aria-hidden="true">{{ item.p.emoji|default:"🍽️" }}</span>
+      {% endif %}
+      <span class="absolute bottom-2 left-2 bg-white/95 text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">🕒 {{ item.tienda.tiempo }}</span>
+      <span class="absolute top-2 right-2 bg-white/95 text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm text-gray-600">{{ item.p.categoria.nombre }}</span>
+    </div>
+    <div class="p-4">
+      <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
+        <a href="{% url 'catalogo' item.tienda.est.pk %}" class="font-medium hover:underline truncate">{{ item.tienda.est.nombre }}</a>
+        <span class="shrink-0 ml-2">⭐ {% if item.tienda.est.rating %}{{ item.tienda.est.rating|floatformat:1 }}{% else %}Nuevo{% endif %}</span>
+      </div>
+      <h3 class="font-bold text-gray-800 text-base leading-snug">{{ item.p.nombre }}</h3>
+    </div>
+  </div>
+  <form method="post" action="{% url 'carrito_accion' %}" class="px-4 pb-4 space-y-2.5">
+    {% csrf_token %}
+    <input type="hidden" name="producto" value="{{ item.p.pk }}">
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    {% if item.p.lista_opciones %}
+      <div>
+        <label for="opc-{{ item.p.pk }}" class="sr-only">Elige opción para {{ item.p.nombre }}</label>
+        <select id="opc-{{ item.p.pk }}" name="opcion" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FF441F]">
+          {% for opc in item.p.lista_opciones %}
+            <option value="{{ opc }}">{{ opc }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    {% endif %}
+    <div class="flex items-center justify-between">
+      <span class="font-extrabold text-gray-900">{{ item.p.precio|cop }}</span>
+      <button name="accion" value="sumar" class="bg-[#FFF0ED] hover:bg-[#FF441F] text-[#FF441F] hover:text-white font-bold text-xs px-3.5 py-2.5 rounded-full transition" aria-label="Agregar {{ item.p.nombre }} a la canasta">+ Agregar</button>
+    </div>
+  </form>
+</article>

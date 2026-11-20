@@ -1,0 +1,21 @@
+{% for field in form %}
+  {% if field.name == 'sitio_web' %}
+    <div class="absolute -left-[9999px]" aria-hidden="true"><label for="{{ field.id_for_label }}">No llenar este campo</label>{{ field }}</div>
+  {% elif field.name == 'captcha' %}
+    <div>
+      <label for="{{ field.id_for_label }}" class="block text-sm font-semibold mb-1">{{ field.label }}</label>
+      <div class="flex items-center gap-3 mb-2">
+        <img id="captcha-img" src="{% url 'captcha' %}" width="190" height="64" class="rounded-lg border border-gray-200 bg-white" alt="Imagen con letras para comprobar que eres una persona">
+        <button type="button" class="text-sm text-[#FF441F] font-bold hover:underline" onclick="document.getElementById('captcha-img').src='{% url 'captcha' %}?'+Date.now()">↻ Otra imagen</button>
+      </div>
+      {{ field }}
+      {% for e in field.errors %}<p class="text-sm text-red-600 font-medium mt-1">{{ e }}</p>{% endfor %}
+    </div>
+  {% else %}
+    <div>
+      <label for="{{ field.id_for_label }}" class="block text-sm font-semibold mb-1">{{ field.label }}</label>
+      {{ field }}
+      {% for e in field.errors %}<p class="text-sm text-red-600 font-medium mt-1">{{ e }}</p>{% endfor %}
+    </div>
+  {% endif %}
+{% endfor %}

@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% load formato %}
+{% block title %}Tu pedido · COMANDA{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-4">
+  <a href="{% url 'catalogo' est.pk %}" class="text-sm font-semibold text-[#FF441F] hover:underline">‹ Seguir agregando</a>
+  <h1 class="text-2xl font-extrabold">Tu pedido · {{ est.nombre }}</h1>
+
+  <section class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
+    {% for i in items %}
+    <div class="flex items-center justify-between gap-3">
+      <div class="min-w-0">
+        <p class="font-bold truncate">{{ i.p.emoji }} {{ i.nombre_mostrar }}</p>
+        <p class="text-xs text-gray-500">{{ i.p.precio|cop }} c/u</p>
+      </div>
+      <form method="post" action="{% url 'carrito_accion' %}" class="flex items-center gap-2">
+        {% csrf_token %}
+        <input type="hidden" name="producto" value="{{ i.p.pk }}">
+        {% if i.opcion %}<input type="hidden" name="opcion" value="{{ i.opcion }}">{% endif %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button name="accion" value="restar" class="w-9 h-9 bg-white border rounded-full font-bold hover:bg-gray-100" aria-label="Quitar uno de {{ i.nombre_mostrar }}">−</button>
+        <span class="w-6 text-center font-bold">{{ i.q }}</span>
+        <button name="accion" value="sumar" class="w-9 h-9 bg-white border rounded-full font-bold hover:bg-gray-100" aria-label="Agregar uno de {{ i.nombre_mostrar }}">+</button>
+      </form>
+      <span class="w-20 text-right font-bold">{{ i.sub|cop }}</span>
+    </div>
+    {% endfor %}
+    <hr class="border-gray-100">
+    <div class="flex justify-between text-sm"><span>Subtotal</span><span>{{ subtotal|cop }}</span></div>
+    <div class="flex justify-between text-sm"><span>Domicilio ({{ zona }} · 🕒 {{ tiempo }})</span><span>{{ domicilio|cop }}</span></div>
+    <div class="flex justify-between text-lg font-extrabold"><span>Total</span><span>{{ total|cop }}</span></div>
+  </section>
+
+  <form method="post" action="{% url 'crear_pedido' %}" enctype="multipart/form-data" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
+    {% csrf_token %}
+    <div class="flex items-center justify-between">
+      <span class="font-bold">Entrega en</span>
+      <span id="badge-ubicacion-pedido" class="text-sm bg-gray-100 px-3 py-1.5 rounded-full font-medium">📍 {{ bloque.nombre }} · Piso {{ piso }}</span>
+    </div>
+
+    <div>
+      <label for="aula_codigo" class="block text-sm font-semibold mb-1">
+        Aula o salón de entrega <span class="text-red-600">*</span>
+      </label>
+      <p class="text-xs text-gray-500 mb-2">
+        Prefijo <strong id="texto-prefijo-bp">{{ prefijo_bp|default:"11" }}</strong> ({{ bloque.nombre }}, Piso {{ piso }}) + salón <strong>01</strong> a <strong>09</strong>, o elige espacio.
+      </p>
+      <div class="flex items-center gap-2">
+        <span id="badge-prefijo-bp" class="rounded-xl border border-gray-200 bg-gray-100 px-3.5 py-3 text-sm font-extrabold text-gray-800 select-none">
+          {{ prefijo_bp|default:"11" }}
+        </span>
+        <select id="aula_codigo" name="aula_codigo" required
+                class="flex-1 rounded-xl border border-red-400 bg-white px-4 py-3 text-sm font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#FF441F]">
+          <option value="" selected disabled>Elige salón (01 - 09) o espacio</option>
+          <option value="01" data-salon="01">{{ prefijo_bp|default:"11" }}01 (Salón 01)</option>
+          <option value="02" data-salon="02">{{ prefijo_bp|default:"11" }}02 (Salón 02)</option>
+          <option value="03" data-salon="03">{{ prefijo_bp|default:"11" }}03 (Salón 03)</option>
+          <option value="04" data-salon="04">{{ prefijo_bp|default:"11" }}04 (Salón 04)</option>
+          <option value="05" data-salon="05">{{ prefijo_bp|default:"11" }}05 (Salón 05)</option>
+          <option value="06" data-salon="06">{{ prefijo_bp|default:"11" }}06 (Salón 06)</option>
+          <option value="07" data-salon="07">{{ prefijo_bp|default:"11" }}07 (Salón 07)</option>
+          <option value="08" data-salon="08">{{ prefijo_bp|default:"11" }}08 (Salón 08)</option>
+          <option value="09" data-salon="09">{{ prefijo_bp|default:"11" }}09 (Salón 09)</option>
+          <option value="Sala múltiple">Sala múltiple</option>
+          <option value="Auditorio">Auditorio</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="border-t border-gray-100 pt-4 space-y-3">
+      <p class="text-sm font-semibold">Método de pago <span class="text-red-600">*</span></p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <label class="flex items-center gap-2.5 rounded-xl border border-gray-200 p-3 cursor-pointer hover:border-[#FF441F]">
+          <input type="radio" name="metodo_pago" value="nequi" checked class="text-[#FF441F] focus:ring-[#FF441F]">
+          <span class="text-sm font-bold text-gray-800">📱 Nequi</span>
+        </label>
+        <label class="flex items-center gap-2.5 rounded-xl border border-gray-200 p-3 cursor-pointer hover:border-[#FF441F]">
+          <input type="radio" name="metodo_pago" value="efectivo" class="text-[#FF441F] focus:ring-[#FF441F]">
+          <span class="text-sm font-bold text-gray-800">💵 Efectivo</span>
+        </label>
+      </div>
+
+      <div id="bloque-billete-efectivo" class="hidden rounded-xl bg-amber-50 border border-amber-200 p-3.5 space-y-2">
+        <label for="billete_efectivo" class="block text-xs font-extrabold text-amber-900">
+          ¿Con qué billete pagarás? (Total: {{ total|cop }})
+        </label>
+        <input type="number" id="billete_efectivo" name="billete_efectivo" min="{{ total }}" step="500"
+               placeholder="Ej.: 20000 o 50000"
+               class="w-full rounded-xl border border-amber-300 bg-white px-3.5 py-2 text-sm font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+        <p id="aviso-cambio-efectivo" class="text-xs font-semibold text-amber-800"></p>
+      </div>
+    </div>
+
+    {% if permite_impresion %}
+    <div>
+      <label for="archivo_impresion" class="block text-sm font-semibold mb-1">Archivo para imprimir (opcional)</label>
+      <input id="archivo_impresion" name="archivo_impresion" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm bg-gray-50">
+    </div>
+    {% endif %}
+
+    <button class="w-full bg-[#00A650] hover:bg-[#008c44] text-white font-bold py-3 rounded-xl transition shadow">Continuar al pago</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    // Sincronizar prefijo bloque+piso (ej. 11 o 63) con el badge y las opciones 01..09
+    var badgeUb = document.getElementById('badge-ubicacion-pedido');
+    var badgePref = document.getElementById('badge-prefijo-bp');
+    var textoPref = document.getElementById('texto-prefijo-bp');
+    var selectAula = document.getElementById('aula_codigo');
+
+    if (badgeUb && selectAula) {
+      var m = badgeUb.textContent.match(/Bloque\s*(\d+)\s*·\s*Piso\s*(\d+)/i);
+      if (m) {
+        var pref = m[1] + m[2];
+        if (badgePref) badgePref.textContent = pref;
+        if (textoPref) textoPref.textContent = pref;
+        selectAula.querySelectorAll('option[data-salon]').forEach(function (opt) {
+          var s = opt.getAttribute('data-salon');
+          opt.textContent = pref + s + ' (Salón ' + s + ')';
+        });
+      }
+    }
+
+    var radios = document.querySelectorAll('input[name="metodo_pago"]');
+    var cajaEfectivo = document.getElementById('bloque-billete-efectivo');
+    var inputBillete = document.getElementById('billete_efectivo');
+    var avisoCambio = document.getElementById('aviso-cambio-efectivo');
+    var totalPedido = Number("{{ total }}") || 0;
+
+    function actualizarMetodo() {
+      var elegido = document.querySelector('input[name="metodo_pago"]:checked');
+      var esEfectivo = elegido && elegido.value === 'efectivo';
+      if (cajaEfectivo) {
+        cajaEfectivo.classList.toggle('hidden', !esEfectivo);
+      }
+      if (inputBillete) {
+        inputBillete.required = esEfectivo;
+        if (!esEfectivo) {
+          inputBillete.value = '';
+          if (avisoCambio) avisoCambio.textContent = '';
+        }
+      }
+    }
+
+    function calcularCambio() {
+      if (!inputBillete || !avisoCambio) return;
+      var monto = Number(inputBillete.value) || 0;
+      if (!monto) {
+        avisoCambio.textContent = '';
+        return;
+      }
+      if (monto < totalPedido) {
+        avisoCambio.textContent = 'El billete debe ser mayor o igual al total del pedido.';
+      } else {
+        var cambio = monto - totalPedido;
+        avisoCambio.textContent = 'Cambio para el domiciliario: $' + cambio.toLocaleString('es-CO');
+      }
+    }
+
+    radios.forEach(function (r) { r.addEventListener('change', actualizarMetodo); });
+    if (inputBillete) inputBillete.addEventListener('input', calcularCambio);
+    actualizarMetodo();
+  })();
+</script>
+{% endblock %}

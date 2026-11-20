@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Reenviar confirmación · COMANDA{% endblock %}
+{% block content %}
+<div class="max-w-md mx-auto">
+  <form method="post" class="relative bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+    {% csrf_token %}
+    <div><h1 class="text-2xl font-extrabold">Reenviar confirmación</h1><p class="text-sm text-gray-600 mt-1">Escribe tu correo y te enviaremos otro enlace.</p></div>
+    {% include "includes/campos_form.html" %}
+    <button class="w-full bg-[#FF441F] hover:bg-[#e03816] text-white font-bold py-3 rounded-xl transition shadow">Enviar enlace</button>
+    <p class="text-sm text-center"><a href="{% url 'login' %}" class="text-[#FF441F] font-bold hover:underline">Volver a ingresar</a></p>
+  </form>
+</div>
+{% endblock %}

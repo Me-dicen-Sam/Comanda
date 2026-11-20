@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Mi perfil · COMANDA{% endblock %}
+{% block content %}
+<div class="max-w-lg mx-auto">
+  <form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8">
+    {% csrf_token %}
+    <div class="text-center mb-6">
+      <label for="id_foto" class="relative inline-flex h-28 w-28 rounded-full bg-orange-50 border-4 border-[#FF441F] items-center justify-center cursor-pointer focus-within:ring-4 focus-within:ring-[#FF441F]/40" title="Cambiar foto">
+        {% if user.foto %}<img id="avatar-img" src="{{ user.foto.url }}" alt="Tu foto de perfil" class="h-full w-full rounded-full object-cover">
+        {% else %}<span id="avatar-vacio" class="text-5xl" aria-hidden="true">👤</span><img id="avatar-img" alt="Vista previa de tu foto" class="hidden h-full w-full rounded-full object-cover">{% endif %}
+        <span class="absolute -right-1 bottom-0 h-9 w-9 rounded-full bg-gray-900 text-white flex items-center justify-center border-2 border-white" aria-hidden="true">📷</span>
+      </label>
+      <input type="file" id="id_foto" name="foto" class="sr-only" accept="image/jpeg,image/png,image/webp">
+      <p id="ayuda-foto" class="text-xs text-gray-500 mt-3">Toca la foto para cambiarla · JPG, PNG o WEBP · máximo 2 MB</p>
+      {% for e in form.foto.errors %}<p class="text-sm text-red-600 font-medium">{{ e }}</p>{% endfor %}
+    </div>
+
+    <div class="space-y-3">
+      <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+        <label for="id_nombre" class="block text-[11px] font-extrabold uppercase tracking-wide text-gray-500">Nombre</label>
+        <input id="id_nombre" name="nombre" type="text" maxlength="120" required value="{{ form.nombre.value|default_if_none:user.nombre }}" class="w-full bg-transparent font-bold text-gray-900 focus:outline-none border-b-2 border-transparent focus:border-[#FF441F]">
+        {% for e in form.nombre.errors %}<p class="text-xs text-red-600 font-medium">{{ e }}</p>{% endfor %}
+      </div>
+      <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+        <span class="block text-[11px] font-extrabold uppercase tracking-wide text-gray-500">Correo institucional</span>
+        <p class="font-bold text-gray-900 break-all">✉️ {{ user.email }}</p>
+      </div>
+      <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+        <label for="id_telefono" class="block text-[11px] font-extrabold uppercase tracking-wide text-gray-500">Teléfono</label>
+        <input id="id_telefono" name="telefono" type="tel" inputmode="tel" maxlength="20" placeholder="Ej. 300 123 4567" value="{{ form.telefono.value|default_if_none:user.telefono }}" class="w-full bg-transparent font-bold text-gray-900 focus:outline-none border-b-2 border-transparent focus:border-[#FF441F]">
+        {% for e in form.telefono.errors %}<p class="text-xs text-red-600 font-medium">{{ e }}</p>{% endfor %}
+      </div>
+      {% if user.rol == 'cliente' or user.rol == 'admin' %}
+      <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 flex items-center justify-between gap-3">
+        <div><span class="block text-[11px] font-extrabold uppercase tracking-wide text-gray-500">Ubicación actual</span>
+          <p class="font-bold text-gray-900">📍 {% if ubicacion_actual %}{{ ubicacion_actual.bloque.nombre }} · Piso {{ ubicacion_actual.piso }}{% else %}Aún no has elegido tu ubicación{% endif %}</p></div>
+        <a href="{% url 'ubicacion' %}" class="shrink-0 bg-orange-100 text-[#c2410c] text-xs font-extrabold px-3.5 py-2 rounded-full hover:bg-orange-200">Cambiar</a>
+      </div>
+      {% endif %}
+    </div>
+    <button class="mt-6 w-full bg-[#FF441F] hover:bg-[#e03816] text-white font-bold py-3 rounded-xl transition shadow">Guardar cambios</button>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function(){var i=document.getElementById('id_foto'),img=document.getElementById('avatar-img'),v=document.getElementById('avatar-vacio'),a=document.getElementById('ayuda-foto'),o=a.textContent;
+i.addEventListener('change',function(){var f=i.files[0];if(!f)return;
+if(['image/jpeg','image/png','image/webp'].indexOf(f.type)===-1||f.size>2*1024*1024){i.value='';a.textContent='Esa foto no sirve: usa JPG, PNG o WEBP de máximo 2 MB.';a.classList.add('text-red-600');return;}
+a.textContent=o;a.classList.remove('text-red-600');img.src=URL.createObjectURL(f);img.classList.remove('hidden');if(v)v.classList.add('hidden');});})();
+</script>
+{% endblock %}

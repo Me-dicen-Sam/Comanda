@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block header %}{% include "includes/header_staff.html" %}{% endblock %}
+{% block title %}Simulación · COMANDA{% endblock %}
+{% block content %}
+<div class="space-y-6">
+  <h1 class="text-2xl font-extrabold">Panel de simulación</h1>
+  <section class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-wrap items-center justify-between gap-3">
+    <form method="post" class="flex flex-wrap gap-3">{% csrf_token %}
+      <button name="accion" value="generar" class="bg-[#FF441F] hover:bg-[#e03816] text-white font-bold px-5 py-2.5 rounded-xl">Generar demo (15 pedidos)</button>
+      <button name="accion" value="reiniciar" onclick="return confirm('¿Borrar los pedidos de demostración?')" class="bg-white border-2 border-red-300 text-red-700 font-bold px-5 py-2.5 rounded-xl hover:bg-red-50">Reiniciar demo</button>
+    </form>
+    <p class="text-sm text-gray-600">Repartidores libres: <strong>{{ disponibles }}</strong> de {{ total_repartidores }}</p>
+  </section>
+  <section><h2 class="text-lg font-bold mb-2">Pedidos por estado</h2>
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-1 text-sm">
+      {% for label, n in por_estado %}{% if n %}<div class="flex justify-between"><span>{{ label }}</span><strong>{{ n }}</strong></div>{% endif %}{% endfor %}</div></section>
+  <section><h2 class="text-lg font-bold mb-2">Viajes activos</h2>
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100 text-sm">
+      {% for v in viajes %}<div class="flex flex-wrap justify-between gap-2 px-4 py-2.5"><span><strong>{{ v.repartidor.nombre }}</strong> · viaje #{{ v.pk }}</span><span class="text-gray-500">{% for p in v.pedidos.all %}#{{ p.pk }} ({{ p.get_estado_display }}) {% endfor %}</span></div>
+      {% empty %}<p class="px-4 py-3 text-gray-500">Sin viajes activos.</p>{% endfor %}</div></section>
+  <section><h2 class="text-lg font-bold mb-2">Bitácora de estados</h2>
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto"><table class="w-full text-sm">
+      <thead class="text-left text-xs uppercase text-gray-500"><tr><th class="px-4 py-2">Hora</th><th class="px-4 py-2">Pedido</th><th class="px-4 py-2">Cambio</th><th class="px-4 py-2">Actor</th></tr></thead>
+      <tbody class="divide-y divide-gray-100">{% for h in bitacora %}<tr><td class="px-4 py-2">{{ h.creado_at|date:"H:i:s" }}</td><td class="px-4 py-2">#{{ h.pedido_id }}{% if h.pedido.es_demo %} (demo){% endif %}</td><td class="px-4 py-2">{{ h.estado_anterior|default:"—" }} → {{ h.estado_nuevo }}</td><td class="px-4 py-2">{{ h.actor }}</td></tr>{% endfor %}</tbody></table></div></section>
+  <section><h2 class="text-lg font-bold mb-2">SMS simulados recientes</h2>
+    <div class="space-y-2">{% for s in sms %}<p class="bg-white rounded-xl border border-gray-100 px-4 py-2.5 text-xs text-gray-600">Pedido #{{ s.pedido_id }} · {{ s.numero }}: {{ s.texto }}</p>{% endfor %}</div></section>
+</div>
+{% endblock %}
+{% block scripts %}<script>setTimeout(function(){if(!document.querySelector('form:hover'))location.reload();},8000);</script>{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Revisa tu correo · COMANDA{% endblock %}
+{% block content %}
+<div class="max-w-md mx-auto bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center space-y-3">
+  <div class="text-5xl" aria-hidden="true">📬</div>
+  <h1 class="text-2xl font-extrabold">Revisa tu correo</h1>
+  <p class="text-gray-600">Si <strong>{{ email|default:"tu correo" }}</strong> está registrado, te enviamos un enlace para activar tu cuenta. Vale 24 horas.</p>
+  <p class="text-sm text-gray-500">Revisa también la carpeta de correo no deseado.</p>
+  <a href="{% url 'login' %}" class="inline-block bg-[#FF441F] text-white font-bold px-6 py-3 rounded-xl">Ir a ingresar</a>
+  <p class="text-sm"><a href="{% url 'reenviar' %}" class="text-[#FF441F] font-bold hover:underline">Reenviar el correo</a></p>
+</div>
+{% endblock %}

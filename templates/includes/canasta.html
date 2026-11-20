@@ -1,0 +1,70 @@
+{% load formato %}
+<div id="cart-drawer" class="fixed inset-0 z-50 {% if not abrir_canasta %}hidden{% endif %}">
+  <div class="fixed inset-0 bg-black/40" onclick="toggleCart()"></div>
+  <aside class="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl flex flex-col justify-between p-6 overflow-y-auto" aria-label="Tu canasta">
+    <div>
+      <div class="flex items-center justify-between border-b border-gray-100 pb-4">
+        <div>
+          <h2 class="text-xl font-extrabold text-gray-900">Tu canasta</h2>
+          {% if canasta_tienda %}
+            <p class="text-xs text-gray-500 mt-0.5">Pedido de {{ canasta_tienda.nombre }}</p>
+          {% endif %}
+        </div>
+        <div class="flex items-center gap-2">
+          {% if canasta %}
+            <form method="post" action="{% url 'carrito_accion' %}">
+              {% csrf_token %}
+              <input type="hidden" name="accion" value="vaciar">
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <button type="submit" title="Vaciar toda la canasta" aria-label="Vaciar toda la canasta"
+                      class="h-9 w-9 rounded-full bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </form>
+          {% endif %}
+          <button type="button" onclick="toggleCart()" aria-label="Cerrar canasta"
+                  class="h-9 w-9 rounded-full hover:bg-gray-100 text-gray-500 font-bold flex items-center justify-center">✕</button>
+        </div>
+      </div>
+
+      <div class="mt-5 space-y-3">
+        {% for row in canasta %}
+          <div class="flex items-center justify-between gap-3 rounded-2xl border border-gray-100 bg-gray-50/70 p-3.5">
+            <div class="min-w-0">
+              <p class="font-bold text-sm text-gray-900 truncate">{{ row.p.emoji|default:"🍽️" }} {{ row.nombre_mostrar }}</p>
+              <p class="text-xs text-gray-500">{{ row.p.precio|cop }} c/u · Subtotal: {{ row.sub|cop }}</p>
+            </div>
+            <form method="post" action="{% url 'carrito_accion' %}" class="flex items-center gap-2 shrink-0">
+              {% csrf_token %}
+              <input type="hidden" name="producto" value="{{ row.p.pk }}">
+              <input type="hidden" name="opcion" value="{{ row.opcion }}">
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <button type="submit" name="accion" value="restar" aria-label="Quitar uno"
+                      class="h-8 w-8 rounded-full border border-gray-300 bg-white font-bold text-gray-700 hover:bg-gray-100">−</button>
+              <span class="w-5 text-center text-sm font-extrabold">{{ row.q }}</span>
+              <button type="submit" name="accion" value="sumar" aria-label="Agregar uno más"
+                      class="h-8 w-8 rounded-full border border-gray-300 bg-white font-bold text-gray-700 hover:bg-gray-100">+</button>
+            </form>
+          </div>
+        {% empty %}
+          <p class="text-sm text-gray-400 text-center py-10">Tu canasta está vacía.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% if canasta %}
+      <div class="border-t border-gray-100 pt-4 mt-6 space-y-3">
+        <div class="flex items-center justify-between text-base font-extrabold text-gray-900">
+          <span>Subtotal</span>
+          <span>{{ canasta_total|cop }}</span>
+        </div>
+        <a href="{% url 'carrito' %}"
+           class="block w-full text-center bg-[#FF441F] hover:bg-[#e03816] text-white font-bold py-3 rounded-xl text-sm shadow transition">
+          Ir a pagar
+        </a>
+      </div>
+    {% endif %}
+  </aside>
+</div>

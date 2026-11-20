@@ -1,0 +1,32 @@
+{% load static formato %}
+<header class="sticky top-0 z-40 bg-gray-900 text-white shadow">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center gap-x-5 gap-y-2">
+    <a href="/" class="flex items-center gap-2 shrink-0" aria-label="COMANDA">
+      <span class="bg-white rounded-lg p-1"><img src="{% static 'img/logo.svg' %}" alt="" class="h-7 w-auto"></span>
+      <span class="font-extrabold text-lg tracking-tight">COMANDA</span>
+    </a>
+    <span class="text-xs font-bold uppercase tracking-wide bg-[#FF441F] px-2.5 py-1 rounded-full">
+      {% if user.rol == 'cafeteria' %}Panel de tienda{% elif user.rol == 'repartidor' %}Panel de repartidor{% else %}Administración{% endif %}
+    </span>
+    <nav class="flex flex-wrap items-center gap-1 text-sm font-semibold sm:ml-4" aria-label="Principal">
+      {% if user.rol == 'cafeteria' %}
+        <a class="px-3 py-1.5 rounded-lg hover:bg-white/10" href="{% url 'panel_cafeteria' %}">Pedidos</a>
+        <a class="px-3 py-1.5 rounded-lg hover:bg-white/10" href="{% url 'panel_cafeteria' %}?vista=catalogo">Catálogo</a>
+        <a class="px-3 py-1.5 rounded-lg hover:bg-white/10" href="{% url 'panel_cafeteria' %}?vista=ajustes">Mi tienda</a>
+      {% elif user.rol == 'repartidor' %}
+        <a class="px-3 py-1.5 rounded-lg hover:bg-white/10" href="{% url 'panel_repartidor' %}">Mis entregas</a>
+      {% else %}
+        <a class="px-3 py-1.5 rounded-lg hover:bg-white/10" href="{% url 'panel' %}">Simulación</a>
+        <a class="px-3 py-1.5 rounded-lg hover:bg-white/10" href="{% url 'billeteras' %}">Billeteras</a>
+        <a class="px-3 py-1.5 rounded-lg hover:bg-white/10" href="{% url 'configuracion' %}">Configuración</a>
+        <a class="px-3 py-1.5 rounded-lg hover:bg-white/10" href="/admin/">Datos (Django)</a>
+        <a class="px-3 py-1.5 rounded-lg hover:bg-white/10" href="{% url 'inicio' %}">Ver como cliente</a>
+      {% endif %}
+      <a class="px-3 py-1.5 rounded-lg hover:bg-white/10" href="{% url 'perfil' %}">Perfil</a>
+    </nav>
+    <div class="ml-auto flex items-center gap-3 text-sm">
+      <span class="hidden sm:inline text-gray-300 truncate max-w-[200px]">{{ user.nombre }}</span>
+      <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg font-semibold">Salir</button></form>
+    </div>
+  </div>
+</header>

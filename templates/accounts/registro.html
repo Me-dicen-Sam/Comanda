@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Crear cuenta · COMANDA{% endblock %}
+{% block content %}
+<div class="max-w-md mx-auto">
+  <form method="post" class="relative bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+    {% csrf_token %}
+    <div><h1 class="text-2xl font-extrabold">Crear cuenta</h1>
+      <p class="text-sm text-gray-600 mt-1">Solo con tu correo <strong>@uniguajira.edu.co</strong>. Te enviaremos un enlace para confirmarlo.</p></div>
+    {% for e in form.non_field_errors %}<p class="rounded-lg bg-red-50 border border-red-200 text-red-800 text-sm font-medium px-3 py-2">{{ e }}</p>{% endfor %}
+    {% include "includes/campos_form.html" %}
+    <button class="w-full bg-[#FF441F] hover:bg-[#e03816] text-white font-bold py-3 rounded-xl transition shadow">Registrarme</button>
+    <p class="text-sm text-gray-600 text-center">¿Ya tienes cuenta? <a href="{% url 'login' %}" class="text-[#FF441F] font-bold hover:underline">Ingresa</a></p>
+  </form>
+</div>
+{% endblock %}

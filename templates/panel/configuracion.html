@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block header %}{% include "includes/header_staff.html" %}{% endblock %}
+{% block title %}Configuración · COMANDA{% endblock %}
+{% block content %}
+<div class="max-w-xl mx-auto">
+  <form method="post" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+    {% csrf_token %}<h1 class="text-2xl font-extrabold">Configuración de la simulación</h1>
+    {% for f in form %}<div><label for="{{ f.id_for_label }}" class="block text-sm font-semibold mb-1">{{ f.label }}</label>
+      <div class="[&_input]:w-full [&_input]:rounded-lg [&_input]:border [&_input]:border-gray-300 [&_input]:px-3 [&_input]:py-2">{{ f }}</div>
+      {% if f.help_text %}<p class="text-xs text-gray-500 mt-1">{{ f.help_text }}</p>{% endif %}{% for e in f.errors %}<p class="text-sm text-red-600 font-medium">{{ e }}</p>{% endfor %}</div>{% endfor %}
+    <button class="w-full bg-[#FF441F] hover:bg-[#e03816] text-white font-bold py-3 rounded-xl">Guardar</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Ingresar · COMANDA{% endblock %}
+{% block content %}
+<div class="max-w-md mx-auto">
+  <div class="bg-gradient-to-r from-[#FF441F] to-[#FF7A00] rounded-2xl p-6 text-white shadow-md mb-6">
+    <span class="bg-white/20 text-xs uppercase font-bold px-2.5 py-1 rounded-full">Entrega en tu aula</span>
+    <h1 class="text-2xl font-extrabold mt-2">Pide en minutos lo que necesites</h1>
+    <p class="text-sm text-white/90 mt-1">Cafeterías y papelerías del campus en un solo lugar.</p>
+  </div>
+  <form method="post" class="relative bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+    {% csrf_token %}
+    <h2 class="text-xl font-extrabold">Ingresar</h2>
+    {% for e in form.non_field_errors %}<p class="rounded-lg bg-red-50 border border-red-200 text-red-800 text-sm font-medium px-3 py-2">{{ e }}</p>{% endfor %}
+    {% include "includes/campos_form.html" %}
+    <button class="w-full bg-[#00A650] hover:bg-[#008c44] text-white font-bold py-3 rounded-xl transition shadow">Iniciar sesión</button>
+    <p class="text-sm text-gray-600 text-center">¿Primera vez? <a href="{% url 'registro' %}" class="text-[#FF441F] font-bold hover:underline">Crea tu cuenta</a></p>
+    <p class="text-sm text-gray-600 text-center">¿No te llegó el correo de confirmación? <a href="{% url 'reenviar' %}" class="text-[#FF441F] font-bold hover:underline">Pide otro</a></p>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load formato %}
+{% block title %}Mi tienda · COMANDA{% endblock %}
+{% block content %}
+<div class="space-y-6">
+  <section class="bg-gray-900 text-white rounded-2xl p-5 flex flex-col md:flex-row md:items-center gap-4 justify-between">
+    <div class="flex items-center gap-4">
+      <span class="relative h-16 w-16 rounded-xl bg-white/10 flex items-center justify-center text-4xl overflow-hidden">{% if est.foto %}<img src="{{ est.foto.url }}" alt="" class="absolute inset-0 h-full w-full object-cover">{% else %}{{ est.emoji }}{% endif %}</span>
+      <div><h1 class="text-2xl font-extrabold">{{ est.nombre }}</h1>
+        <p class="text-sm text-gray-300">{{ est.tipo }} · {{ est.bloque.nombre }}{% if promedio %} · ⭐ {{ promedio|floatformat:1 }}{% endif %}</p></div>
+    </div>
+    <div class="flex flex-wrap gap-3">
+      <form method="post" action="{% url 'cafeteria_estado' %}">{% csrf_token %}<input type="hidden" name="campo" value="abierto">
+        <button class="flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold {% if est.abierto %}bg-green-600 hover:bg-green-700{% else %}bg-red-600 hover:bg-red-700{% endif %}" aria-pressed="{{ est.abierto|yesno:'true,false' }}">
+          <span class="h-2.5 w-2.5 rounded-full bg-white"></span>{% if est.abierto %}Tienda abierta · cerrar{% else %}Tienda cerrada · abrir{% endif %}</button></form>
+      <form method="post" action="{% url 'cafeteria_estado' %}">{% csrf_token %}<input type="hidden" name="campo" value="modo_manual">
+        <button class="rounded-full px-4 py-2.5 text-sm font-bold border-2 {% if est.modo_manual %}bg-[#FF441F] border-[#FF441F]{% else %}border-white/40 hover:bg-white/10{% endif %}" aria-pressed="{{ est.modo_manual|yesno:'true,false' }}">{% if est.modo_manual %}Atención manual: ACTIVADA{% else %}Atención manual: desactivada{% endif %}</button></form>
+    </div>
+  </section>
+
+  {% include "paneles/_metricas.html" %}
+
+  <nav class="flex gap-2 border-b border-gray-200" aria-label="Secciones">
+    {% for clave, nombre in secciones %}<a href="?vista={{ clave }}" class="px-4 py-2.5 text-sm font-bold rounded-t-lg border-b-4 {% if vista == clave %}border-[#FF441F] text-[#FF441F]{% else %}border-transparent text-gray-500 hover:text-gray-800{% endif %}">{{ nombre }}</a>{% endfor %}
+  </nav>
+
+  {% if vista == 'catalogo' %}
+  <section class="grid lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 space-y-3">
+      {% for pr in productos %}
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+        <span class="relative h-14 w-14 shrink-0 rounded-xl bg-orange-50 flex items-center justify-center text-3xl overflow-hidden">{% if pr.foto %}<img src="{{ pr.foto.url }}" alt="" class="absolute inset-0 h-full w-full object-cover">{% else %}{{ pr.emoji }}{% endif %}</span>
+        <div class="flex-1 min-w-0"><p class="font-bold truncate">{{ pr.nombre }}</p><p class="text-xs text-gray-500">{{ pr.categoria.nombre }}</p></div>
+        <form method="post" action="{% url 'producto_rapido' pr.pk %}" class="flex items-center gap-2">{% csrf_token %}
+          <label class="sr-only" for="precio-{{ pr.pk }}">Precio de {{ pr.nombre }}</label>
+          <input id="precio-{{ pr.pk }}" name="precio" type="number" min="0" max="1000000" step="50" value="{{ pr.precio }}" class="w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <button class="bg-gray-900 text-white text-sm font-bold px-3 py-2 rounded-lg">Guardar</button></form>
+        <div class="flex items-center gap-2">
+          <form method="post" action="{% url 'producto_rapido' pr.pk %}">{% csrf_token %}<input type="hidden" name="accion" value="disponibilidad">
+            <button class="text-xs font-bold px-3 py-2 rounded-full {% if pr.disponible %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-700{% endif %}" aria-pressed="{{ pr.disponible|yesno:'true,false' }}">{% if pr.disponible %}Disponible{% else %}Agotado{% endif %}</button></form>
+          <a href="{% url 'producto_editar' pr.pk %}" class="text-xs font-bold text-[#FF441F] hover:underline">Editar</a>
+        </div>
+      </div>
+      {% empty %}<p class="bg-white rounded-2xl border p-6 text-gray-500">Aún no tienes productos. Agrega el primero.</p>{% endfor %}
+    </div>
+    <form method="post" action="{% url 'producto_crear' %}" enctype="multipart/form-data" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3 h-fit">
+      {% csrf_token %}<h2 class="font-extrabold text-lg">Agregar producto</h2>
+      {% for f in form %}
+        {% if f.name == 'disponible' %}<label class="flex items-center gap-2 text-sm font-semibold">{{ f }} {{ f.label }}</label>
+        {% else %}<div><label for="{{ f.id_for_label }}" class="block text-sm font-semibold mb-1">{{ f.label }}</label><div class="[&_input:not([type=file]):not([type=checkbox])]:w-full [&_input:not([type=file]):not([type=checkbox])]:rounded-lg [&_input:not([type=file]):not([type=checkbox])]:border [&_input:not([type=file]):not([type=checkbox])]:border-gray-300 [&_input:not([type=file]):not([type=checkbox])]:px-3 [&_input:not([type=file]):not([type=checkbox])]:py-2 [&_select]:w-full [&_select]:rounded-lg [&_select]:border [&_select]:border-gray-300 [&_select]:px-3 [&_select]:py-2">{{ f }}</div></div>{% endif %}
+      {% endfor %}
+      <button class="w-full bg-[#FF441F] hover:bg-[#e03816] text-white font-bold py-2.5 rounded-xl">Agregar al catálogo</button>
+    </form>
+  </section>
+
+  {% elif vista == 'ajustes' %}
+  <form method="post" action="{% url 'cafeteria_tienda' %}" enctype="multipart/form-data" class="max-w-xl bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+    {% csrf_token %}<h2 class="font-extrabold text-lg">Datos de mi tienda</h2>
+    <p class="text-sm text-gray-600">La foto aparece en el carrusel de tiendas que ven los clientes.</p>
+    {% for f in form_tienda %}<div><label for="{{ f.id_for_label }}" class="block text-sm font-semibold mb-1">{{ f.label }}</label><div class="[&_input:not([type=file])]:w-full [&_input:not([type=file])]:rounded-lg [&_input:not([type=file])]:border [&_input:not([type=file])]:border-gray-300 [&_input:not([type=file])]:px-3 [&_input:not([type=file])]:py-2">{{ f }}</div></div>{% endfor %}
+    <button class="bg-gray-900 text-white font-bold px-6 py-2.5 rounded-xl">Guardar</button>
+  </form>
+
+  {% else %}
+  <section class="space-y-4">
+    <div class="flex flex-wrap gap-2" role="group" aria-label="Filtrar pedidos">
+      {% for f in filtros %}<a href="?vista=pedidos&filtro={{ f }}" class="px-3.5 py-1.5 rounded-full text-sm font-bold border {% if filtro == f %}bg-gray-900 text-white border-gray-900{% else %}bg-white text-gray-700 border-gray-200 hover:border-gray-400{% endif %}">{{ f|capfirst }}</a>{% endfor %}
+    </div>
+    {% for p in pedidos %}
+    <article class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+      <div class="flex flex-wrap items-start justify-between gap-2">
+        <div><p class="font-extrabold">Pedido #{{ p.pk }} <span class="font-normal text-gray-500">· {{ p.usuario.nombre }}</span></p>
+          <p class="text-xs text-gray-500">{{ p.creado_at|date:"d/m H:i" }} · Entrega: {{ p.bloque.nombre }}, piso {{ p.piso }}{% if p.referencia_entrega %} ({{ p.referencia_entrega }}){% endif %}</p></div>
+        <span class="text-xs font-extrabold px-3 py-1.5 rounded-full {{ p.estado|chip_estado }}">{{ p.get_estado_display }}</span>
+      </div>
+      <ul class="mt-3 text-sm space-y-1">{% for d in p.detalles.all %}<li class="flex justify-between"><span>{{ d.cantidad }} × {{ d.producto.nombre }}</span><span>{{ d.precio_unitario|cop }}</span></li>{% endfor %}</ul>
+      <div class="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-3">
+        <p class="text-sm">Productos: <strong>{{ p.subtotal|cop }}</strong>{% if p.viaje %} · Repartidor: <strong>{{ p.viaje.repartidor.nombre }}</strong>{% endif %}</p>
+        <div class="flex flex-wrap items-center gap-2">
+          {% if p.estado == 'pagado' and est.modo_manual %}
+            <form method="post" action="{% url 'cafeteria_pedido' p.pk %}">{% csrf_token %}<button name="accion" value="aceptar" class="bg-[#00A650] text-white text-sm font-bold px-4 py-2 rounded-lg">Aceptar</button></form>{% endif %}
+          {% if p.estado == 'asignado' and est.modo_manual %}
+            <form method="post" action="{% url 'cafeteria_pedido' p.pk %}">{% csrf_token %}<button name="accion" value="listo" class="bg-sky-600 text-white text-sm font-bold px-4 py-2 rounded-lg">Marcar listo</button></form>{% endif %}
+          {% if p.cancelable %}
+            <details class="relative"><summary class="cursor-pointer list-none text-sm font-bold text-red-700 border-2 border-red-200 rounded-lg px-4 py-2 hover:bg-red-50">Rechazar</summary>
+              <form method="post" action="{% url 'cafeteria_pedido' p.pk %}" class="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-lg p-3 z-10 space-y-2">{% csrf_token %}
+                <label for="m-{{ p.pk }}" class="text-xs font-semibold">Motivo (el cliente lo verá)</label>
+                <input id="m-{{ p.pk }}" name="motivo" maxlength="200" placeholder="Ej.: se agotó el producto" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                <button name="accion" value="rechazar" class="w-full bg-red-600 text-white text-sm font-bold py-2 rounded-lg">Rechazar y reembolsar</button></form></details>{% endif %}
+        </div>
+      </div>
+    </article>
+    {% empty %}<p class="bg-white rounded-2xl border p-6 text-gray-500">No hay pedidos en esta vista.</p>{% endfor %}
+  </section>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}<script>setTimeout(function(){if(!document.querySelector('details[open],input:focus,textarea:focus'))location.reload();},12000);</script>{% endblock %}

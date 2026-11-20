@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load formato %}
+{% block header %}{% include "includes/header_staff.html" %}{% endblock %}
+{% block title %}Billeteras · COMANDA{% endblock %}
+{% block content %}
+<div class="space-y-6">
+  <h1 class="text-2xl font-extrabold">Billeteras y movimientos</h1>
+  <section class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-2">
+    <div class="flex justify-between"><span>Suma de las billeteras</span><strong>{{ total_wallets|cop }}</strong></div>
+    <div class="flex justify-between"><span>Pagos liquidados (+ cargos por cancelar)</span><strong>{{ esperado|cop }}</strong></div>
+    <div class="flex flex-wrap gap-2 pt-2">
+      {% if cuadra %}<span class="text-xs font-extrabold px-3 py-1.5 rounded-full bg-green-100 text-green-800">✔ Las billeteras suman exactamente lo pagado</span>{% else %}<span class="text-xs font-extrabold px-3 py-1.5 rounded-full bg-red-100 text-red-700">✖ Hay una diferencia</span>{% endif %}
+      {% if doble %}<span class="text-xs font-extrabold px-3 py-1.5 rounded-full bg-red-100 text-red-700">✖ {{ doble }} repartidor(es) con dos viajes activos</span>{% else %}<span class="text-xs font-extrabold px-3 py-1.5 rounded-full bg-green-100 text-green-800">✔ Ningún repartidor con dos viajes activos</span>{% endif %}
+    </div>
+  </section>
+  <section class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto"><table class="w-full text-sm">
+    <thead class="text-left text-xs uppercase text-gray-500"><tr><th class="px-4 py-2">Cuenta</th><th class="px-4 py-2">Titular</th><th class="px-4 py-2">Saldo</th></tr></thead>
+    <tbody class="divide-y divide-gray-100">{% for w in wallets %}<tr><td class="px-4 py-2">{{ w.get_tipo_display }}</td><td class="px-4 py-2">{{ w.establecimiento|default:w.repartidor|default:"COMANDA" }}</td><td class="px-4 py-2 font-bold">{{ w.saldo|cop }}</td></tr>{% empty %}<tr><td colspan="3" class="px-4 py-3 text-gray-500">Aún no hay movimientos.</td></tr>{% endfor %}</tbody></table></section>
+  <section><h2 class="text-lg font-bold mb-2">Últimos movimientos</h2>
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto"><table class="w-full text-sm">
+      <thead class="text-left text-xs uppercase text-gray-500"><tr><th class="px-4 py-2">Hora</th><th class="px-4 py-2">Tipo</th><th class="px-4 py-2">Pedido</th><th class="px-4 py-2">Billetera</th><th class="px-4 py-2">Monto</th></tr></thead>
+      <tbody class="divide-y divide-gray-100">{% for m in movimientos %}<tr><td class="px-4 py-2">{{ m.creado_at|date:"H:i:s" }}</td><td class="px-4 py-2">{{ m.get_tipo_display }}</td><td class="px-4 py-2">#{{ m.pedido_id }}</td><td class="px-4 py-2">{{ m.billetera|default:"(retenido)" }}</td><td class="px-4 py-2">{{ m.monto|cop }}</td></tr>{% endfor %}</tbody></table></div></section>
+</div>
+{% endblock %}

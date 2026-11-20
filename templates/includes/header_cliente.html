@@ -1,0 +1,49 @@
+{% load static formato %}
+<header class="sticky top-0 z-40 bg-white shadow-sm">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+    <a href="{% url 'inicio' %}" class="flex items-center gap-2 shrink-0" aria-label="COMANDA, ir al inicio">
+      <img src="{% static 'img/logo.svg' %}" alt="" class="h-9 w-auto">
+      <span class="bg-[#FF441F] text-white font-extrabold text-xl px-3 py-1 rounded-xl tracking-tight">COMANDA</span>
+    </a>
+
+    <a href="{% url 'ubicacion' %}" class="hidden sm:flex items-center gap-2 text-sm bg-gray-100 px-3 py-2 rounded-full hover:bg-gray-200 transition">
+      <span aria-hidden="true">📍</span>
+      <span class="font-medium truncate max-w-[180px]">{{ ubicacion_label }}</span>
+      <span class="text-xs text-[#FF441F] font-bold">Cambiar</span>
+    </a>
+
+    <form action="{% url 'inicio' %}" method="get" role="search" class="flex-1 max-w-md hidden md:block">
+      <div class="relative">
+        <label for="buscar" class="sr-only">Buscar productos o tiendas</label>
+        <input id="buscar" name="q" type="search" value="{{ q|default:'' }}" placeholder="¿Qué se te antoja hoy?"
+               class="w-full bg-gray-100 text-sm rounded-full pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#FF441F]">
+        <span class="absolute left-3.5 top-2.5 text-gray-400" aria-hidden="true">🔍</span>
+      </div>
+    </form>
+
+    <div class="flex items-center gap-2">
+      <button type="button" onclick="toggleCart()" class="relative bg-[#FF441F] hover:bg-[#e03816] text-white px-4 py-2 rounded-full font-semibold text-sm flex items-center gap-2 transition shadow-sm">
+        <span aria-hidden="true">🛒</span><span class="hidden md:inline">Canasta</span>
+        <span data-canasta-count class="bg-white text-[#FF441F] text-xs font-extrabold px-2 py-0.5 rounded-full">{{ canasta_n|default:0 }}</span>
+      </button>
+
+      <details class="relative">
+        <summary class="list-none cursor-pointer flex items-center" aria-label="Menú de mi cuenta">
+          {% if user.foto %}<img src="{{ user.foto.url }}" alt="" class="h-10 w-10 rounded-full object-cover border-2 border-[#FF441F]">
+          {% else %}<span class="h-10 w-10 rounded-full bg-orange-100 text-[#FF441F] font-extrabold flex items-center justify-center border-2 border-[#FF441F]">{{ user.nombre|iniciales }}</span>{% endif %}
+        </summary>
+        <div class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 text-sm z-50">
+          <div class="px-4 py-2 border-b border-gray-100"><p class="font-bold truncate">{{ user.nombre }}</p><p class="text-xs text-gray-500 truncate">{{ user.email }}</p></div>
+          <a class="block px-4 py-2 hover:bg-gray-50" href="{% url 'perfil' %}">👤 Mi perfil</a>
+          <a class="block px-4 py-2 hover:bg-gray-50" href="{% url 'mis_pedidos' %}">🧾 Mis pedidos</a>
+          <a class="block px-4 py-2 hover:bg-gray-50" href="{% url 'ubicacion' %}">📍 Cambiar ubicación</a>
+          {% if user.is_staff %}<a class="block px-4 py-2 hover:bg-gray-50" href="{% url 'panel' %}">⚙️ Administración</a>{% endif %}
+          <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="w-full text-left px-4 py-2 hover:bg-gray-50 text-red-600 font-semibold">Salir</button></form>
+        </div>
+      </details>
+    </div>
+  </div>
+  <a href="{% url 'ubicacion' %}" class="sm:hidden flex items-center justify-center gap-2 text-sm bg-gray-100 px-3 py-2">
+    <span aria-hidden="true">📍</span><span class="font-medium truncate">{{ ubicacion_label }}</span><span class="text-xs text-[#FF441F] font-bold">Cambiar</span>
+  </a>
+</header>
