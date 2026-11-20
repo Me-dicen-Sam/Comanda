@@ -98,7 +98,7 @@ else:
         'default': {
             'ENGINE': 'django.db.backends.mysql',
             'NAME': os.environ.get('DB_NAME', 'comanda'),
-            'USER': os.environ.get('DB_USER', 'comanda'),
+            'USER': os.environ.get('DB_USERNAME') or os.environ.get('DB_USER', 'comanda'),
             'PASSWORD': os.environ.get('DB_PASSWORD', ''),
             'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
             'PORT': os.environ.get('DB_PORT', '3306'),
@@ -169,6 +169,10 @@ DECISION_TIMEOUT_SEG = 60         # si el cliente no decide sobre compartir repa
 CAPTCHA_ENABLED = os.environ.get('CAPTCHA_ENABLED', 'True') == 'True'
 EMAIL_VERIFICACION_OBLIGATORIA = os.environ.get('EMAIL_VERIFICACION_OBLIGATORIA', 'False') == 'True'
 LOGIN_MAX_INTENTOS = 5            # intentos fallidos antes de bloquear 15 minutos
+LOGIN_BLOQUEO_SEG = 15 * 60
+
+# Correo en modo local (sin envío SMTP externo)
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
 LOGIN_BLOQUEO_SEG = 15 * 60
 
 # Correo en modo local (sin envío SMTP externo)
