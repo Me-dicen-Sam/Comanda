@@ -11,7 +11,6 @@ from catalogo.geo import tarifa_para
 from catalogo.models import Bloque, Establecimiento, Producto
 from simulacion.motor import avanzar
 from simulacion.servicios import PagoInvalido, cancelar_pedido, confirmar_recibido, pagar_pedido
-from simulacion.tiempos import programar
 
 from . import asignacion
 from .estados import TransicionInvalida, cambiar_estado
@@ -55,6 +54,10 @@ def crear(request):
         messages.error(request, 'Debes seleccionar el aula o espacio de entrega.')
         return redirect('carrito')
 
+    if metodo_pago == 'efectivo':
+        messages.error(request, 'Pago no disponible en este momento.')
+        return redirect('carrito')
+
     c = request.session.get('carrito') or {}
     est = Establecimiento.objects.filter(pk=c.get('est'), activo=True).select_related('bloque').first()
     if not est or not (c.get('items') or {}):
@@ -70,16 +73,6 @@ def crear(request):
     total_estimado = subtotal_est + tarifa_para(bloque, est.bloque)['valor']
 
     detalle_pago = 'Nequi'
-    if metodo_pago == 'efectivo':
-        try:
-            billete = int(billete_raw)
-        except ValueError:
-            billete = 0
-        if billete < total_estimado:
-            messages.error(request, 'Indica un monto en efectivo mayor o igual al total del pedido.')
-            return redirect('carrito')
-        cambio = billete - total_estimado
-        detalle_pago = f'Efectivo (billete ${billete:,}, cambio ${cambio:,})'.replace(',', '.')
 
     dig_bloque = ''.join(ch for ch in bloque.nombre if ch.isdigit()) or '1'
     prefijo_bp = f'{dig_bloque}{piso}'
@@ -105,10 +98,6 @@ def crear(request):
         return redirect('inicio')
 
     request.session.pop('carrito', None)
-    if metodo_pago == 'efectivo':
-        cambiar_estado(pedido.pk, E.PAGADO, 'cliente')
-        programar(pedido)
-        return redirect('seguimiento', pk=pedido.pk)
     return redirect('pago', pk=pedido.pk)
 
 
