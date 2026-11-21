@@ -11,6 +11,7 @@ from catalogo.geo import tarifa_para
 from catalogo.models import Bloque, Establecimiento, Producto
 from simulacion.motor import avanzar
 from simulacion.servicios import PagoInvalido, cancelar_pedido, confirmar_recibido, pagar_pedido
+from simulacion.tiempos import programar
 
 from . import asignacion
 from .estados import TransicionInvalida, cambiar_estado
@@ -106,6 +107,7 @@ def crear(request):
     request.session.pop('carrito', None)
     if metodo_pago == 'efectivo':
         cambiar_estado(pedido.pk, E.PAGADO, 'cliente')
+        programar(pedido)
         return redirect('seguimiento', pk=pedido.pk)
     return redirect('pago', pk=pedido.pk)
 
